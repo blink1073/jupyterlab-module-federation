@@ -73,13 +73,11 @@ if (entryPoint === undefined) {
 }
 
 if (entryPoint === true) {
-  if (entryPoint === true) {
-    // Use require to get the entry point
-    entryPoint = require.resolve(packagePath);
-  } else {
-    // Use the path to get the entry point
-    entryPoint = path.join(packagePath, entryPoint);
-  }
+  // Use require to get the entry point
+  entryPoint = require.resolve(packagePath);
+} else {
+  // Use the path to get the entry point
+  entryPoint = path.join(packagePath, entryPoint);
 }
 
 const coreData = require('./core_package/package.json');
@@ -97,6 +95,9 @@ if (data.jupyterlab.singletonPackages) {
   });
 }
 
+// Add self as singleton
+singletons[data.name] = { singleton: true };
+
 // Remove non-singletons.
 if (data.jupyterlab.nonSingletonPackages) {
   data.jupyterlab.nonSingletonPackages.forEach(element => {
@@ -107,10 +108,13 @@ if (data.jupyterlab.nonSingletonPackages) {
 // Start with core shared.
 const shared = coreData.dependencies;
 
-// Add package shared.
+// Add package shared dependencies.
 Object.keys(data.dependencies).forEach(element => {
   shared[element] = data.dependencies[element];
 });
+
+// Add self as shared
+shared[data.name] = '~' + data.version;
 
 // Remove non-shared.
 if (data.jupyterlab.nonSharedPackages) {
